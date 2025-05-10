@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Time & Date</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#fbc2eb" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -30,6 +32,20 @@
       margin-top: 15px;
       word-wrap: break-word;
     }
+    #installBtn {
+      display: none;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #installBtn:hover {
+      background-color: #45a049;
+    }
 
     @media (min-width: 600px) {
       .container {
@@ -49,6 +65,7 @@
   <div class="container">
     <h1>Current Time & Date</h1>
     <div id="dateTime">Loading...</div>
+    <button id="installBtn">Install App</button>
   </div>
 
   <script>
@@ -70,6 +87,36 @@
 
     updateDateTime();
     setInterval(updateDateTime, 1000);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service Worker registered.', reg))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    }
+
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'inline-block';
+
+      installBtn.addEventListener('click', () => {
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choiceResult => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          deferredPrompt = null;
+        });
+      });
+    });
   </script>
 </body>
 </html>
+
+  
